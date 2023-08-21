@@ -27,7 +27,7 @@ pipeline {
         stage("build image") {
             steps {
                 script {
-                    buildImage()
+                    buildImage 'foundryvault/demo-app:jma-3.0'
                 }
             }
             
