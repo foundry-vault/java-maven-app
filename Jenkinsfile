@@ -24,10 +24,12 @@ pipeline {
             }
         }
 
-        stage("build image") {
+        stage("build and push image") {
             steps {
                 script {
                     buildImage 'foundryvault/demo-app:jma-3.0'
+                    dockerLogin()
+                    dockerPush 'foundryvault/demo-app:jma-3.0'
                 }
             }
             
