@@ -23,6 +23,14 @@ pipeline {
             }
         }
 
+        stage("multi-branch hook test") {
+            steps {
+                script {
+                    echo "testing multi-branch webhook from GitHub"
+                }
+            }
+        }
+
         stage("build jar") {
             steps {
                 script {
