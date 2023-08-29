@@ -26,7 +26,7 @@ pipeline {
         stage("webhook test") {
             steps {
                 script {
-                    echo 'Testing webhook integration with Github'
+                    echo 'Testing webhook integration with GitHub'
                 }
             }
         }
