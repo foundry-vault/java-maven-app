@@ -23,6 +23,14 @@ pipeline {
             }
         }
 
+        stage("webhook test") {
+            steps {
+                script {
+                    echo 'Testing webhook integration with Github'
+                }
+            }
+        }
+
         stage("build jar") {
             steps {
                 script {
@@ -34,9 +42,9 @@ pipeline {
         stage("build and push image") {
             steps {
                 script {
-                    buildImage 'foundryvault/demo-app:jma-3.0'
+                    buildImage 'foundryvault/demo-app:jma-3.1'
                     dockerLogin()
-                    dockerPush 'foundryvault/demo-app:jma-3.0'
+                    dockerPush 'foundryvault/demo-app:jma-3.1'
                 }
             }
             
