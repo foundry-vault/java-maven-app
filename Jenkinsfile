@@ -1,35 +1,51 @@
+#!/user/bin/env groovy
+// For Global Shared Library: @Library('jenkins-shared-library@tag[optional]')
+
+library identifier: 'jenkins-shared-library@master', retriever: modernSCM([
+    $class: 'GitSCMSource',
+    remote: 'https://github.com/foundry-vault/jenkins-shared-library.git',
+    credentialsId: 'github-credentials'
+])
+
+def gv
+
 pipeline {
     agent any
+    tools {
+        maven 'maven-3.9'
+    }
     stages {
-        stage("test") {
+        stage("init") {
             steps {
                 script {
-                    echo "Testing the application"
-                    echo "Executing pipeline for brach $BRANCH_NAME"
+                    gv = load "script.groovy"
                 }
             }
         }
-        stage("build") {
-            when {
-                expression {
-                    BRANCH_NAME == "master"
-                }
-            }
+
+        stage("build jar") {
             steps {
                 script {
-                    echo "Building the application"
+                    buildJar()
                 }
             }
         }
+
+        stage("build and push image") {
+            steps {
+                script {
+                    buildImage 'foundryvault/demo-app:jma-3.0'
+                    dockerLogin()
+                    dockerPush 'foundryvault/demo-app:jma-3.0'
+                }
+            }
+            
+        }
+
         stage("deploy") {
-            when {
-                expression {
-                    BRANCH_NAME == "master"
-                }
-            }
             steps {
                 script {
-                    echo "Deploying the application"
+                   gv.deployApp() 
                 }
             }
         }
