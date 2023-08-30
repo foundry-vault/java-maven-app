@@ -1,59 +1,55 @@
 #!/user/bin/env groovy
-// For Global Shared Library: @Library('jenkins-shared-library@tag[optional]')
-
-library identifier: 'jenkins-shared-library@master', retriever: modernSCM([
-    $class: 'GitSCMSource',
-    remote: 'https://github.com/foundry-vault/jenkins-shared-library.git',
-    credentialsId: 'github-credentials'
-])
 
 def gv
 
 pipeline {
     agent any
+
     tools {
         maven 'maven-3.9'
     }
+
     stages {
-        stage("init") {
+        stage('increment java app version') {
             steps {
                 script {
-                    gv = load "script.groovy"
+                    echo '[LOG] Incrementing the application version'
+                    sh "mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit"
+                    def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
+                    def version = matcher[0][1]
+                    env.IMAGE_NAME = "$version-$BUILD_NUMBER"
                 }
             }
         }
 
-        stage("webhook test") {
+        stage('build java app') {
             steps {
                 script {
-                    echo 'Testing webhook integration with Github'
+                    echo '[LOG] Building the application'
+                    sh 'mvn clean package'
                 }
             }
         }
 
-        stage("build jar") {
+        stage('build and push docker image') {
             steps {
                 script {
-                    buildJar()
+                    echo '[LOG] Building the docker image'
+                    withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                        sh "docker build -t foundryvault/demo-app:${IMAGE_NAME} ."
+                        sh "echo  $PASS | docker login -u $USER --password-stdin"
+                        sh "docker push foundryvault/demo-app:${IMAGE_NAME}"
+                    }
                 }
             }
         }
 
-        stage("build and push image") {
+        stage('deploy java app') {
             steps {
                 script {
-                    buildImage 'foundryvault/demo-app:jma-3.1'
-                    dockerLogin()
-                    dockerPush 'foundryvault/demo-app:jma-3.1'
-                }
-            }
-            
-        }
-
-        stage("deploy") {
-            steps {
-                script {
-                   gv.deployApp() 
+                    echo '[LOG] Deploying the application'
                 }
             }
         }
