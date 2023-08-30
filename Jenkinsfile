@@ -39,7 +39,7 @@ pipeline {
                     echo '[LOG] Building the docker image'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
                         sh "docker build -t foundryvault/demo-app:${IMAGE_NAME} ."
-                        sh "echo  $PASS | docker login -u $USER --password-stdin"
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
                         sh "docker push foundryvault/demo-app:${IMAGE_NAME}"
                     }
                 }
@@ -50,6 +50,27 @@ pipeline {
             steps {
                 script {
                     echo '[LOG] Deploying the application'
+                }
+            }
+        }
+
+        stage('commit version update') {
+            steps {
+                script {
+                    echo '[LOG] Commiting the new pom.xml'
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                        sh 'git config user.email "jenkins@foundryvault.com"'
+                        sh 'git config user.name "Jenkins"'
+                        
+                        sh 'git status'
+                        sh 'git branch'
+                        sh 'git config --list'
+
+                        sh "git remote set-url origin https://${USER}:${PASS}@github.com/foundry-vault/java-maven-app.git"
+                        sh 'git add .'
+                        sh 'git commit -m "[Jenkins] version increment in pom.xml"'
+                        sh 'git push origin HEAD:master'
+                    }
                 }
             }
         }
