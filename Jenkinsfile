@@ -1,5 +1,3 @@
-#!/user/bin/env groovy
-
 def gv
 
 pipeline {
@@ -65,8 +63,9 @@ pipeline {
                         sh 'git status'
                         sh 'git branch'
                         sh 'git config --list'
-
+                        echo '[LOG] adding remote'
                         sh "git remote set-url origin https://${USER}:${PASS}@github.com/foundry-vault/java-maven-app.git"
+                        //sh "git remote set-url origin https://${USER}:${PASS}@github.com/foundry-vault/java-maven-app.git"
                         sh 'git add .'
                         sh 'git commit -m "[Jenkins] version increment in pom.xml"'
                         sh 'git push origin HEAD:master'
