@@ -56,14 +56,14 @@ pipeline {
             steps {
                 script {
                     echo '[LOG] Commiting the new pom.xml'
-                    withCredentials([usernamePassword(credentialsId: 'github-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
-                        //sh 'git config --global user.email "jenkins@foundryvault.com"'
-                        //sh 'git config --global user.name "Jenkins"'                     
+                    withCredentials([usernamePassword(credentialsId: 'gitlab-credentials', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                        sh 'git config --global user.email "jenkins@foundryvault.com"'
+                        sh 'git config --global user.name "Jenkins"'                     
                         sh 'git status'
                         sh 'git branch'
                         sh 'git config --list'
                         echo '[LOG] adding remote'
-                        //sh "git remote set-url origin https://${USER}:${PASS}@github.com/foundry-vault/java-maven-app.git"
+                        sh "git remote set-url origin https://${USER}:${PASS}@gitlab.com/foundryvault/java-maven-app.git"
                         sh 'git add .'
                         sh 'git commit -m "[Jenkins] version increment in pom.xml"'
                         sh 'git push origin HEAD:master'
